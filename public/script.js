@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const socket = io.connect()
+
     const brush = {
         active: false,
         moving: false,
@@ -14,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     screen.width = 700
     screen.height = 500
+
+    context.lineWidth = 7
+    context.stokeStyle = "red"
 
     const drawLine = (line) => {
         context.beginPath()
@@ -35,15 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
         brush.moving = true
     }
 
+    socket.on('draw', (line) => {
+        drawLine(line)
+    })
+
     const cycle = () => {
         if(brush.active && brush.moving && brush.prevPosition) {
-            drawLine({ pos: brush.pos, prevPosition: brush.prevPosition })
+            socket.emit('draw', { pos: brush.pos, prevPosition: brush.prevPosition })
+
             brush.moving = false
         }
 
         brush.prevPosition = {... brush.pos}
 
-        setTimeout(cycle, 100)
+        setTimeout(cycle, 10)
     }
 
     cycle()
